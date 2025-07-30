@@ -2,10 +2,14 @@
 #include <thread>
 #include <WinSock2.h> //소켓관련 헤더
 #pragma comment(lib, "ws2_32.lib") //Windows에서 Winsock 2.0 기능을 제공하는 라이브러리, 없으면 링크에러남. 프로젝트 속성에서 추가 종속성에 넣어도됨
-
+#include <fstream>
 #include <string>
+#include <vector>
 #include <fcntl.h>
 #include <io.h>
+#include <conio.h>  // _getch() 사용
+#include <windows.h>  // system("cls")
+#include <algorithm>
 void ClientHandler(SOCKET clientSocket) {
 	char buffer[512];
 	while (true) {
@@ -49,8 +53,84 @@ void ConsoleSetting() {
 	std::wcout << L"출력 테스트 😎🔥🚀 ffdd" << std::endl;
 	//std::cout << u8"Hello, emoji 😎🔥🚀" << std::endl;
 }
+
+void drowingMonster() {
+	std::ifstream file("monster.txt");  // 읽을 파일 이름
+
+	if (!file.is_open()) {
+		std::cerr << "파일을 열 수 없습니다." << std::endl;
+		return;
+	}
+
+	std::string line;
+	while (std::getline(file, line)) {  // 한 줄씩 읽기
+		std::cout << line << std::endl; // 출력
+	}
+
+	file.close(); // 파일 닫기
+}
+
+void drowingMonster2() {
+	std::ifstream file("monster.txt");
+
+	if (!file.is_open()) {
+		std::cerr << "파일을 열 수 없습니다." << std::endl;
+		return;
+	}
+
+	std::vector<std::string> lines;
+	std::string line;
+
+	// 전체 줄 읽기
+	while (std::getline(file, line)) {
+		lines.push_back(line);
+	}
+	file.close();
+
+	const int frameHeight = 40;  // 한 프레임당 줄 수
+	int totalLines = lines.size();
+	int totalFrames = totalLines / frameHeight;
+
+	int currentFrame = 0;
+
+	// 처음 프레임은 자동 출력
+	system("cls");
+	for (int i = 0; i < frameHeight && i < totalLines; ++i) {
+		std::cout << lines[i] << std::endl;
+	}
+
+	std::cout << "\n[스페이스바를 누르면 다음 애니메이션 장면 출력, ESC로 종료]\n";
+
+	// 나머지 프레임은 스페이스 누를 때마다 출력
+	while (true) {
+		int key = _getch();
+
+		if (key == 27) return; // ESC
+
+		if (key == ' ') {
+			currentFrame++;
+			if (currentFrame >= totalFrames) {
+				std::cout << "\n[마지막 프레임입니다.]\n";
+				break;
+			}
+
+			system("cls");
+
+			int startLine = currentFrame * frameHeight;
+			int endLine = min(startLine + frameHeight, totalLines);
+
+			for (int i = startLine; i < endLine; ++i) {
+				std::cout << lines[i] << std::endl;
+			}
+
+			std::cout << "\n[스페이스바를 누르면 다음 애니메이션 장면 출력, ESC로 종료]\n";
+		}
+	}
+}
+
 int main() {
-	ConsoleSetting();
+	drowingMonster2();
+	//ConsoleSetting();
 
 	//윈도우 소켓을 사용하기 위한 초기화
 	WSADATA wsaData; //윈속API(윈도우에서 소켓 네트워크 통신을 할 수 있게 해주는 API)를 사용할 때 필요한 구조체
